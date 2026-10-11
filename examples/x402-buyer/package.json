@@ -1,0 +1,18 @@
+{
+  "name": "naxytra-x402-buyer-example",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Standalone x402 buyer example that pays the public naxytra MCP executor (and HTTP runtime) per call with USDC on Base.",
+  "license": "Apache-2.0",
+  "main": "x402-buyer-demo.js",
+  "scripts": {
+    "demo": "node x402-buyer-demo.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "viem": "^2.57.4"
+  }
+}

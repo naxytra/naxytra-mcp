@@ -1,0 +1,11 @@
+naxytra-mcp
+Copyright 2026 parthod0x
+
+This product includes the public integration surface (documentation and example
+client code) for the naxytra pay-per-call execution and settlement service.
+
+Licensed under the Apache License, Version 2.0. See the LICENSE file.
+
+The naxytra runtime, settlement engine, breadth catalog, and tool
+implementations are proprietary and hosted; they are not included in this
+repository.
