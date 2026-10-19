@@ -1,98 +1,87 @@
-# x402 buyer demo
+# x402 buyer demos
 
-A standalone buyer that runs the full machine-commerce loop against the live
-public `xytara` MCP executor: discover a tool, get priced, pay with USDC on Base,
-and receive the tool result plus an on-chain settlement receipt.
+Standalone buyers that run the full machine-commerce loop against the live public
+naxytra services: discover a tool, see the price, pay with USDC on Base, and receive
+the result plus a settlement receipt and a signed delivery receipt.
 
-This is the shortest honest proof that the stack does what it claims: an agent
-with a funded wallet can pay for a single tool call and get a verifiable result.
+A call is only settled after it succeeds — a failed, empty or invalid call is never
+charged, and bad arguments are rejected before any payment is requested.
 
 ## Three demos
 
-- `x402-buyer-demo.js` — a paid MCP `tools/call` against the MCP executor.
-- `x402-command-demo.js` — a paid `/x402/commands/execute` against the main runtime.
-- `x402-credits-topup-demo.js` — a single x402 payment to `/x402/credits/topup` that mints spendable runtime credits to your account, with no operator grant.
+- `x402-buyer-demo.js` — a paid MCP `tools/call` on the MCP server, using the x402 MCP
+  transport (payment in `params._meta["x402/payment"]`). Set `PAYMENT_TRANSPORT=header`
+  to send it as a `PAYMENT-SIGNATURE` header instead, or `MCP_URL=.../mcp/http402` for the
+  HTTP-402 variant used by fetch-wrapper clients.
+- `x402-command-demo.js` — a paid `POST /x402/commands/execute` on the runtime, running an
+  MCP tool through `task_ref: "adapter.mcp.invoke"`.
+- `x402-credits-topup-demo.js` — buys reusable runtime credits with one x402 payment
+  ($1.00 USDC on Base mainnet = 400 credits), stores the returned spend credential
+  locally (`spend-credential.local.json`, git-ignored), and spends one call with
+  `payment_preference: "credits_first"`.
 
-The first two pay per call; the third buys reusable credit. All sign the same gasless EIP-3009 USDC authorization.
+All three sign the same gasless EIP-3009 USDC authorization.
 
-## What it does
+## The flow
 
-1. `tools/list` — free, lists the available tools (17).
-2. `tools/call` with no payment — returns `402 Payment Required` with the price,
-   the receiving address, and the token to pay in.
-3. Signs an x402 `exact` USDC payment (an EIP-3009 `transferWithAuthorization`
-   authorization) for exactly the advertised amount.
-4. `tools/call` again with the `PAYMENT-SIGNATURE` header — the server verifies
-   and settles the payment through an x402 facilitator, runs the tool, and
-   returns the result with a `PAYMENT-RESPONSE` settlement receipt.
+1. `tools/list` — free; lists the 17 tools.
+2. `tools/call` with no payment — returns a payment-required tool result (`isError`,
+   `structuredContent` = the x402 `PaymentRequired` with price, network, asset, `payTo`).
+   The runtime routes answer with HTTP `402` and the same terms.
+3. Sign an x402 `exact` USDC payment (EIP-3009 `transferWithAuthorization`) for exactly the
+   advertised amount.
+4. Call again with the payment — the server verifies it, runs the tool, settles only after
+   success, and returns the result with `_meta["x402/payment-response"]` (and a
+   `PAYMENT-RESPONSE` header) plus a signed delivery receipt.
 
 ## Run it
 
 ```bash
 npm install
 
-# Against the MCP tool server (x402-buyer-demo.js):
-node x402-buyer-demo.js                               # see the price, no wallet
+node x402-buyer-demo.js                               # see the price, no wallet (free)
 BUYER_PRIVATE_KEY=0x<key> node x402-buyer-demo.js     # full paid tool call
 
-# Against the main runtime's /x402/commands/execute (x402-command-demo.js),
-# when the runtime is in x402_facilitator mode:
-node x402-command-demo.js                             # see the price, no wallet
-BUYER_PRIVATE_KEY=0x<key> node x402-command-demo.js   # full paid command
+node x402-command-demo.js                             # runtime price, no wallet
+BUYER_PRIVATE_KEY=0x<key> node x402-command-demo.js   # paid MCP tool via the runtime
+
+node x402-credits-topup-demo.js                       # top-up price + credits, no wallet
+BUYER_PRIVATE_KEY=0x<key> node x402-credits-topup-demo.js   # buy credits, spend one call
 ```
 
-```bash
-# Self-serve credits: pay once and receive spendable runtime credits
-# (x402-credits-topup-demo.js), when the runtime is in x402_facilitator mode:
-node x402-credits-topup-demo.js                              # see price + credits, no wallet
-BUYER_PRIVATE_KEY=0x<key> node x402-credits-topup-demo.js    # pay and receive credits
-```
-
-> ⚠️ **Real-money note.** The demo pays in whatever network the server advertises
-> in its 402. **The live endpoint currently prices in real USDC on Base mainnet
-> (~$0.01 per call)** — a funded paid run spends real money. The no-wallet run is
-> always free. If the server advertises Base Sepolia instead, you pay test USDC;
-> fund a throwaway wallet from the Circle faucet (<https://faucet.circle.com>).
-
-No native gas token is needed. The payment is gasless for the buyer: you sign an
-EIP-3009 authorization and the facilitator broadcasts the transfer and pays gas.
-
-Then pass that wallet's private key as `BUYER_PRIVATE_KEY`.
-
-> On PowerShell, set the key as its own statement, not inline:
+> On PowerShell, set the key as its own statement:
 > `$env:BUYER_PRIVATE_KEY = "0x<key>"; node x402-buyer-demo.js`
 
-## Proven
+## Networks and money
 
-This loop has been run against the live server end to end on **Base mainnet with
-real USDC**: the signed payment verified at the facilitator, settled on-chain, the
-tool executed, and the response carried a `PAYMENT-RESPONSE` receipt with the
-settlement transaction hash. Run it yourself with a funded wallet to reproduce it.
+- `x402-buyer-demo.js` prefers **Base Sepolia** by default ($0.001 in free test USDC from
+  <https://faucet.circle.com>). Set `PREFER_NETWORK=eip155:8453` to pay on **Base mainnet**
+  ($0.01 real USDC per call).
+- The runtime demos pay on the network the runtime advertises; credits top-ups are Base
+  mainnet only.
+- No native gas token is needed: you sign an authorization and the facilitator broadcasts
+  the transfer and pays gas.
 
 ## Environment
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `MCP_URL` | `https://xytara-mcp-executor.onrender.com/mcp` | the paid MCP endpoint |
-| `BUYER_PRIVATE_KEY` | *(unset)* | 0x EVM key holding USDC on the advertised network (real USDC on Base mainnet today) |
-| `TOOL` | `summarize` | any catalog tool (run `tools/list`), e.g. `summarize`, `x402.verify-receipt`, `eip712.hash` |
-| `TEXT` | sample sentence | input text for `summarize` / `reply.draft` |
+| `MCP_URL` | `https://xytara-mcp-executor.onrender.com/mcp` | the MCP endpoint (`.../mcp/http402` for HTTP 402) |
+| `BUYER_PRIVATE_KEY` | *(unset)* | 0x EVM key holding USDC on the chosen network |
+| `PREFER_NETWORK` | `eip155:84532` | `eip155:8453` for Base mainnet |
+| `PAYMENT_TRANSPORT` | `meta` | `header` to send `PAYMENT-SIGNATURE` |
+| `TOOL` / `ARGS` | `summarize` / sample | any tool from `tools/list` and its JSON arguments |
+| `TASK_REF` | `adapter.mcp.invoke` | runtime task (`adapter.xoonya.invoke` for proof verification) |
 
 ## How to read the outcome
 
-- **No key**: stops after the 402 and prints exactly how to fund and retry.
-- **Unfunded key**: reaches `payment_verification_failed` with an
-  `insufficient_balance` detail. This is a feature: it proves the signed payment
-  is well-formed and reached the facilitator; it just has nothing to settle.
-- **Funded key**: prints the tool result and a settlement receipt with the
-  transaction hash.
+- **No key**: stops after the price and prints how to fund and retry.
+- **Unfunded key**: the facilitator rejects the payment (insufficient balance) — the signed
+  payment was well-formed; nothing is charged.
+- **Funded key**: prints the tool result, the settlement transaction and the delivery receipt.
+- Every runtime response carries an `X-Request-Id`; quote it if you ask for support.
 
 ## Notes
 
-- This example talks only to the public naxytra endpoints; it uses `viem` for
-  EIP-712 signing and carries no server internals or credentials.
-- The payment is gasless for the buyer: you sign an EIP-3009 authorization, and
-  the facilitator broadcasts the USDC transfer. You never submit a transaction.
-- The demo settles on whichever network the server advertises in its 402. The
-  live endpoint currently advertises **Base mainnet (real USDC)**; a funded paid
-  run spends real money. The no-wallet run is free.
+These examples talk only to the public naxytra endpoints. They use `viem` for EIP-712
+signing and carry no server internals or credentials.

@@ -2,9 +2,14 @@
 //
 // Same trustless loop as x402-buyer-demo.js, but against the general command runtime
 // instead of the MCP tool server:
-//   1. call a command with no payment      -> 402 with the advertised price
+//   1. call a task with no payment         -> 402 with the advertised price
 //   2. sign a gasless x402 USDC payment (EIP-3009)
-//   3. call again with the payment          -> 200 + result + a settlement receipt
+//   3. call again with the payment          -> 200 + result + settlement + signed delivery receipt
+//
+// Only tasks that resolve to a real execution target are payable: adapter.mcp.invoke (any of the
+// 17 MCP tools, routed to the MCP provider) and adapter.xoonya.invoke (post-quantum proof
+// verification). Any other task_ref is refused up front with 501 capability_not_executable and
+// no payment is requested.
 //
 // The runtime must be running in x402_facilitator mode with XYTARA_X402_ACCEPTS_JSON set.
 //
@@ -15,7 +20,9 @@
 // Env:
 //   X402_URL           default https://xytara.onrender.com/x402/commands/execute
 //   BUYER_PRIVATE_KEY  0x EVM key holding USDC on the advertised network
-//   TASK_REF           default trust.verify
+//   TASK_REF           default adapter.mcp.invoke
+//   TOOL               default keccak256 (the MCP tool to run)
+//   ARGS               default {"data":"hello"} (JSON arguments for the tool)
 //   COMMAND            default a sample command label
 
 import { createWalletClient, http, toHex } from "viem";
@@ -23,7 +30,9 @@ import { privateKeyToAccount } from "viem/accounts";
 import { randomBytes } from "node:crypto";
 
 const X402_URL = process.env.X402_URL || "https://xytara.onrender.com/x402/commands/execute";
-const TASK_REF = process.env.TASK_REF || "trust.verify";
+const TASK_REF = process.env.TASK_REF || "adapter.mcp.invoke";
+const TOOL = process.env.TOOL || "keccak256";
+const ARGS = process.env.ARGS ? JSON.parse(process.env.ARGS) : { data: "hello" };
 const COMMAND = process.env.COMMAND || "x402 command demo";
 const PRIVATE_KEY = process.env.BUYER_PRIVATE_KEY || "";
 
@@ -38,7 +47,7 @@ async function execute(headers = {}) {
   const res = await fetch(X402_URL, {
     method: "POST",
     headers: { "content-type": "application/json", ...headers },
-    body: JSON.stringify({ account_id: "acct_x402_demo", command: COMMAND, task_ref: TASK_REF, body: { subject_id: "demo-1" } })
+    body: JSON.stringify({ command: COMMAND, task_ref: TASK_REF, body: { tool_name: TOOL, arguments: ARGS } })
   });
   let json = null;
   try { json = await res.json(); } catch { /* non-JSON */ }
@@ -53,7 +62,9 @@ async function main() {
   const unpaid = await execute();
   if (unpaid.status !== 402) {
     console.error(`  expected 402, got ${unpaid.status}:`, JSON.stringify(unpaid.json).slice(0, 300));
-    console.error("  the runtime may not be in x402_facilitator mode.");
+    console.error(unpaid.json && unpaid.json.reason === "capability_not_executable"
+      ? `  ${TASK_REF} is not executable here; payable tasks: ${(unpaid.json.executable_task_refs || []).join(", ")}`
+      : "  the runtime may not be in x402_facilitator mode.");
     process.exit(1);
   }
   const requirements = unpaid.json && unpaid.json.payment_required && (unpaid.json.payment_required.accepts || [])[0];
