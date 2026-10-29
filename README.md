@@ -2,7 +2,7 @@
 
 **naxytra lets an AI agent discover a tool, pay once with x402 (USDC on Base), and get a verifiable result with an on-chain settlement receipt — no account, no API key, no human in the loop.**
 
-One endpoint, pay per call: **$0.01 USDC on Base mainnet** ($0.001 on Base Sepolia). Settlement is **gasless for the buyer** (x402 `exact` / EIP-3009), goes through the Coinbase CDP facilitator on Base, and happens **only after the call succeeds**. A $1.00 top-up on the runtime buys **400 reusable credits**.
+One endpoint, pay per call: **$0.01 USDC on Base mainnet** ($0.001 on Base Sepolia) for naxytra's own tools; open-network provider tools listed on the same endpoint are priced by each provider, **from $0.001** (1 credit with a spend key; one x402 payment is at least $0.005, Base mainnet only). Settlement is **gasless for the buyer** (x402 `exact` / EIP-3009), goes through the Coinbase CDP facilitator on Base, and happens **only after the call succeeds**. A $1.00 top-up on the runtime buys **400 reusable credits**.
 
 > This repository is the public **integration front door** — how to connect, the pay-per-call flow, the tool catalog, and a runnable example buyer. The naxytra runtime, settlement engine, and tool implementations are a **hosted service**: you call them over open protocols (MCP · HTTP · x402 · A2A), you don't run them.
 
