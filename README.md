@@ -10,9 +10,9 @@ One endpoint, pay per call: **$0.01 USDC on Base mainnet** ($0.001 on Base Sepol
 
 | Surface | URL |
 | --- | --- |
-| MCP server (streamable HTTP) | `https://xytara-mcp-executor.onrender.com/mcp` |
-| MCP server card | `https://xytara-mcp-executor.onrender.com/server.json` |
-| HTTP runtime | `https://xytara.onrender.com` |
+| MCP server (streamable HTTP) | `https://mcp.naxytra.com/mcp` |
+| MCP server card | `https://mcp.naxytra.com/server.json` |
+| HTTP runtime | `https://api.naxytra.com` |
 | Discovery index | `https://naxytra.com/v1/agent-discovery-index` |
 | A2A agent card | `https://naxytra.com/.well-known/agent-card.json` |
 | Website | `https://naxytra.com/agents` |
@@ -26,12 +26,12 @@ Point Claude Desktop, Cursor, or any MCP host at the endpoint:
 ```json
 {
   "mcpServers": {
-    "naxytra": { "url": "https://xytara-mcp-executor.onrender.com/mcp" }
+    "naxytra": { "url": "https://mcp.naxytra.com/mcp" }
   }
 }
 ```
 
-`tools/list` is free. An unpaid `tools/call` returns a payment-required tool result with the price (x402 MCP transport); pay and retry, and you get the result plus a settlement receipt and a signed delivery receipt. Fetch-style x402 clients can use `https://xytara-mcp-executor.onrender.com/mcp/http402` for a standard HTTP `402`.
+`tools/list` is free. An unpaid `tools/call` returns a payment-required tool result with the price (x402 MCP transport); pay and retry, and you get the result plus a settlement receipt and a signed delivery receipt. Fetch-style x402 clients can use `https://mcp.naxytra.com/mcp/http402` for a standard HTTP `402`.
 
 ## The pay-per-call flow
 
@@ -40,18 +40,18 @@ Point Claude Desktop, Cursor, or any MCP host at the endpoint:
 3. The Coinbase CDP facilitator verifies and settles it on Base.
 4. Agent re-calls with the payment in `params._meta["x402/payment"]` (or a `PAYMENT-SIGNATURE` header) → the tool runs, the payment settles only on success, and the result comes back with `_meta["x402/payment-response"]` (settlement tx) and a signed delivery receipt (Ed25519 + ML-DSA-65).
 
-Agents that make many calls can instead buy **reusable credits** on the runtime: one x402 payment of $1.00 USDC (Base mainnet) to `POST https://xytara.onrender.com/x402/credits/topup` buys 400 credits (a typical call costs 3) and returns a spend credential for `payment_preference: "credits_first"` — still fully autonomous, no operator approval.
+Agents that make many calls can instead buy **reusable credits** on the runtime: one x402 payment of $1.00 USDC (Base mainnet) to `POST https://api.naxytra.com/x402/credits/topup` buys 400 credits (a typical call costs 3) and returns a spend credential for `payment_preference: "credits_first"` — still fully autonomous, no operator approval.
 
 ## Try it in 60 seconds (no download)
 
 ```bash
 # free: list the tools
-curl -s https://xytara-mcp-executor.onrender.com/mcp \
+curl -s https://mcp.naxytra.com/mcp \
   -H 'content-type: application/json' -H 'accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 
 # calling a tool without payment returns a payment-required result with the price
-curl -s https://xytara-mcp-executor.onrender.com/mcp \
+curl -s https://mcp.naxytra.com/mcp \
   -H 'content-type: application/json' -H 'accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"summarize","arguments":{"text":"hello"}}}'
 ```
@@ -66,7 +66,7 @@ curl -s https://xytara-mcp-executor.onrender.com/mcp \
 
 **x402 & EVM-native:** `x402.decode` · `x402.verify-receipt` · `keccak256` · `address.validate` · `abi.encode` · `abi.decode` · `merkle.verify` · `eip712.hash`
 
-The live catalog with full input/output schemas is always at [`tools/list`](https://xytara-mcp-executor.onrender.com/mcp) and [`/server.json`](https://xytara-mcp-executor.onrender.com/server.json).
+The live catalog with full input/output schemas is always at [`tools/list`](https://mcp.naxytra.com/mcp) and [`/server.json`](https://mcp.naxytra.com/server.json).
 
 ## Proven on Base mainnet (real USDC)
 

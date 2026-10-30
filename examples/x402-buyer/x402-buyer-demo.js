@@ -17,7 +17,7 @@
 //   BUYER_PRIVATE_KEY=0x... node x402-buyer-demo.js   # full paid call
 //
 // Env:
-//   MCP_URL              default https://xytara-mcp-executor.onrender.com/mcp
+//   MCP_URL              default https://mcp.naxytra.com/mcp
 //                        (use .../mcp/http402 for the HTTP-402 variant)
 //   BUYER_PRIVATE_KEY    0x-prefixed EVM private key that holds USDC on the chosen network
 //   PREFER_NETWORK       default eip155:84532 (Base Sepolia, $0.001 test USDC); eip155:8453 = mainnet ($0.01)
@@ -30,7 +30,7 @@ import { createWalletClient, http, toHex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { randomBytes } from "node:crypto";
 
-const MCP_URL = process.env.MCP_URL || "https://xytara-mcp-executor.onrender.com/mcp";
+const MCP_URL = process.env.MCP_URL || "https://mcp.naxytra.com/mcp";
 const TOOL = process.env.TOOL || "summarize";
 const TEXT = process.env.TEXT || "Machine commerce means an agent can discover a tool, pay for one call, and get a verifiable result. This demo pays the live xytara MCP executor with USDC on Base.";
 const PRIVATE_KEY = process.env.BUYER_PRIVATE_KEY || "";

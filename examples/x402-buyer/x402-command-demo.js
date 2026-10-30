@@ -18,7 +18,7 @@
 //   BUYER_PRIVATE_KEY=0x... node x402-command-demo.js  # full paid call
 //
 // Env:
-//   X402_URL           default https://xytara.onrender.com/x402/commands/execute
+//   X402_URL           default https://api.naxytra.com/x402/commands/execute
 //   BUYER_PRIVATE_KEY  0x EVM key holding USDC on the advertised network
 //   TASK_REF           default adapter.mcp.invoke
 //   TOOL               default keccak256 (the MCP tool to run)
@@ -29,7 +29,7 @@ import { createWalletClient, http, toHex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { randomBytes } from "node:crypto";
 
-const X402_URL = process.env.X402_URL || "https://xytara.onrender.com/x402/commands/execute";
+const X402_URL = process.env.X402_URL || "https://api.naxytra.com/x402/commands/execute";
 const TASK_REF = process.env.TASK_REF || "adapter.mcp.invoke";
 const TOOL = process.env.TOOL || "keccak256";
 const ARGS = process.env.ARGS ? JSON.parse(process.env.ARGS) : { data: "hello" };

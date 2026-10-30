@@ -66,7 +66,7 @@ BUYER_PRIVATE_KEY=0x<key> node x402-credits-topup-demo.js   # buy credits, spend
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `MCP_URL` | `https://xytara-mcp-executor.onrender.com/mcp` | the MCP endpoint (`.../mcp/http402` for HTTP 402) |
+| `MCP_URL` | `https://mcp.naxytra.com/mcp` | the MCP endpoint (`.../mcp/http402` for HTTP 402) |
 | `BUYER_PRIVATE_KEY` | *(unset)* | 0x EVM key holding USDC on the chosen network |
 | `PREFER_NETWORK` | `eip155:84532` | `eip155:8453` for Base mainnet |
 | `PAYMENT_TRANSPORT` | `meta` | `header` to send `PAYMENT-SIGNATURE` |

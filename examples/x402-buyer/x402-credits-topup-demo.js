@@ -10,8 +10,8 @@
 //   SPEND_ONLY=1 node x402-credits-topup-demo.js             # spend with the stored credential, no payment
 //
 // Env:
-//   TOPUP_URL          default https://xytara.onrender.com/x402/credits/topup
-//   EXECUTE_URL        default https://xytara.onrender.com/x402/commands/execute
+//   TOPUP_URL          default https://api.naxytra.com/x402/credits/topup
+//   EXECUTE_URL        default https://api.naxytra.com/x402/commands/execute
 //   BUYER_PRIVATE_KEY  0x EVM key holding USDC on the advertised network (no ETH needed)
 //   PREFER_NETWORK     default eip155:8453 (top-ups are mainnet-only by default)
 //   CREDENTIAL_FILE    where the spend credential is stored (default spend-credential.local.json,
@@ -26,7 +26,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
-const TOPUP_URL = process.env.TOPUP_URL || "https://xytara.onrender.com/x402/credits/topup";
+const TOPUP_URL = process.env.TOPUP_URL || "https://api.naxytra.com/x402/credits/topup";
 const EXECUTE_URL = process.env.EXECUTE_URL || new URL("/x402/commands/execute", TOPUP_URL).toString();
 const PRIVATE_KEY = process.env.BUYER_PRIVATE_KEY || "";
 const ACCOUNT_ID = process.env.ACCOUNT_ID || "";
