@@ -68,6 +68,32 @@ curl -s https://mcp.naxytra.com/mcp \
 
 The live catalog with full input/output schemas is always at [`tools/list`](https://mcp.naxytra.com/mcp) and [`/server.json`](https://mcp.naxytra.com/server.json).
 
+## Anchored attestations: verifiable offline, no account
+
+Signed attestations from `x402.verify-receipt` and `tx.status` can be anchored in time with chronology-protocol, an open timestamping protocol published by machine-native: https://github.com/machine-native/chronology-protocol (see `VERIFY.md`). The protocol is open and anyone can run the same anchoring from that repository. naxytra uses it; it is not exclusive to naxytra.
+
+What an anchor shows, strongest part first:
+
+- **Public Bitcoin.** Each published epoch is timestamped with OpenTimestamps. Its proofs are attested in public Bitcoin blocks that neither naxytra nor machine-native controls. This shows the attestation existed no later than those blocks.
+- **Laboratory chain.** Each epoch is also ordered in a difficulty-1 laboratory chain that a single operator mines. On its own, that shows only ordering relative to that operator's work, which is why we always pair it with the Bitcoin proofs above.
+
+How it works: the binding tag is placed inside the attestation before it is signed (`bindings: [{scheme: "ctp/1", system_id, tag}]`). naxytra submits only the attestation's SHA-256 digest (of its RFC 8785 form). It never submits who asked, what, or for how much. All times are UTC.
+
+Latency: the operator batches anchoring into epochs, currently monthly or when a batch is ready. The Bitcoin attestation lands some hours after an epoch. There is no SLA, and anchoring is neither per-transaction nor instant. Status of any attestation: `GET https://api.naxytra.com/v1/anchoring/<attestation_id>` (anchored in epoch N / queued for the next epoch / not bound). Anchoring costs nothing extra: the attestation price ($0.02 or 6 credits) covers it.
+
+Check it yourself. You need Python 3.10+ and OpenSSL 3.5+; no account, and no trust in naxytra or machine-native:
+
+1. **Open the record.** Fetch the attestation by id (`https://mcp.naxytra.com/attestations/<id>`, or `https://api.naxytra.com/v1/delegation-log/checkpoints/<id>` for a delegation-log checkpoint). SHA-256 its RFC 8785 form. The digest must equal the one bound in the epoch.
+2. **Verify the bundle offline.** `python scripts/verify_sandwich.py vectors/valid/<bundle>.cbor` should print `SANDWICH_PASS`. That shows the record existed after laboratory block B0 and before laboratory block C.
+3. **Check public Bitcoin (needs network).** `python scripts/confirm_attestations.py` confirms each OpenTimestamps attestation against a public explorer.
+
+Anchored so far:
+
+- Epoch 10: two `tx.status` attestations (`att_7901a5f0869e`, `att_9ba842d872c4`); bundle `naxytra-binding-bundle.cbor`; laboratory block 1365; OpenTimestamps proofs attested in Bitcoin blocks 972765–972808.
+- Epoch 11: the first delegation-log checkpoint (`att_61682b456a1d`); bundle `naxytra-delegation-binding-bundle.cbor`; laboratory block 1368; proofs attested in Bitcoin blocks 972955–973014.
+- Later weekly delegation-log checkpoints are archived as issued and go into the next monthly epoch.
+- Other attestations issued so far were not submitted and are not anchored.
+
 ## Proven on Base mainnet (real USDC)
 
 - Paid MCP tool call: [`0x3c63caed…1529bf9231`](https://basescan.org/tx/0x3c63caed66cc4ee2f545589efe3a8ca34fd1099143d5593aa9f7351529bf9231)
