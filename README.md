@@ -84,13 +84,14 @@ Latency: the operator batches anchoring into epochs, currently monthly or when a
 Check it yourself. You need Python 3.10+ and OpenSSL 3.5+; no account, and no trust in naxytra or machine-native:
 
 1. **Open the record.** Fetch the attestation by id (`https://mcp.naxytra.com/attestations/<id>`, or `https://api.naxytra.com/v1/delegation-log/checkpoints/<id>` for a delegation-log checkpoint). SHA-256 its RFC 8785 form. The digest must equal the one bound in the epoch.
-2. **Verify the bundle offline.** `python scripts/verify_sandwich.py vectors/valid/<bundle>.cbor` should print `SANDWICH_PASS`. That shows the record existed after laboratory block B0 and before laboratory block C.
+2. **Verify the bundle offline.** `python scripts/verify_sandwich.py vectors/valid/<bundle>.cbor` should print a passing verdict: `SANDWICH_PASS`, or `SANDWICH_PASS_NO_TIME_CONSENSUS` when the time witnesses did not agree on a single instant. Either way the record existed after laboratory block B0 and no later than laboratory block C; with `NO_TIME_CONSENSUS` the bundle gives no wall-clock time.
 3. **Check public Bitcoin (needs network).** `python scripts/confirm_attestations.py` confirms each OpenTimestamps attestation against a public explorer.
 
 Anchored so far:
 
 - Epoch 10: two `tx.status` attestations (`att_7901a5f0869e`, `att_9ba842d872c4`); bundle `naxytra-binding-bundle.cbor`; laboratory block 1365; OpenTimestamps proofs attested in Bitcoin blocks 972765–972808.
 - Epoch 11: the first delegation-log checkpoint (`att_61682b456a1d`); bundle `naxytra-delegation-binding-bundle.cbor`; laboratory block 1368; proofs attested in Bitcoin blocks 972955–973014.
+- Epoch 12: one `tx.status` attestation; bundle `naxytra-attestation-binding-bundle.cbor`; laboratory block 1703; verdict `SANDWICH_PASS_NO_TIME_CONSENSUS` (it existed after laboratory block 1570 and no later than 1703; no wall-clock time). Bitcoin timestamp pending: its OpenTimestamps proofs are not yet attested.
 - Later weekly delegation-log checkpoints are archived as issued and go into the next monthly epoch.
 - Other attestations issued so far were not submitted and are not anchored.
 
