@@ -79,7 +79,7 @@ What an anchor shows, strongest part first:
 
 How it works: the binding tag is placed inside the attestation before it is signed (`bindings: [{scheme: "ctp/1", system_id, tag}]`). naxytra submits only the attestation's SHA-256 digest (of its RFC 8785 form). It never submits who asked, what, or for how much. All times are UTC.
 
-Latency: the operator batches anchoring into epochs, currently monthly or when a batch is ready. The Bitcoin attestation lands some hours after an epoch. There is no SLA, and anchoring is neither per-transaction nor instant. Status of any attestation: `GET https://api.naxytra.com/v1/anchoring/<attestation_id>` (anchored in epoch N / queued for the next epoch / not bound). Anchoring costs nothing extra: the attestation price ($0.02 or 6 credits) covers it.
+Latency: the operator batches anchoring into epochs, currently monthly or when a batch is ready. The Bitcoin attestation usually lands within a day of stamping. There is no SLA, and anchoring is neither per-transaction nor instant. Status of any attestation: `GET https://api.naxytra.com/v1/anchoring/<attestation_id>` (anchored in epoch N / queued for the next epoch / not bound). Anchoring costs nothing extra: the attestation price ($0.02 or 6 credits) covers it.
 
 Check it yourself. You need Python 3.10+ and OpenSSL 3.5+; no account, and no trust in naxytra or machine-native:
 
