@@ -91,7 +91,7 @@ Anchored so far:
 
 - Epoch 10: two `tx.status` attestations (`att_7901a5f0869e`, `att_9ba842d872c4`); bundle `naxytra-binding-bundle.cbor`; laboratory block 1365; OpenTimestamps proofs attested in Bitcoin blocks 972765–972808.
 - Epoch 11: the first delegation-log checkpoint (`att_61682b456a1d`); bundle `naxytra-delegation-binding-bundle.cbor`; laboratory block 1368; proofs attested in Bitcoin blocks 972955–973014.
-- Epoch 12: one `tx.status` attestation; bundle `naxytra-attestation-binding-bundle.cbor`; laboratory block 1703; verdict `SANDWICH_PASS_NO_TIME_CONSENSUS` (it existed after laboratory block 1570 and no later than 1703; no wall-clock time). OpenTimestamps proofs attested in Bitcoin blocks 976433–976436.
+- Epoch 12: one `tx.status` attestation; bundle `naxytra-attestation-binding-bundle.cbor`; laboratory block 1703; verdict `SANDWICH_PASS_NO_TIME_CONSENSUS` (it existed after laboratory block 1570 and no later than 1703; no wall-clock time). OpenTimestamps proofs attested in Bitcoin blocks 976433–976462.
 - Later weekly delegation-log checkpoints are archived as issued and go into the next monthly epoch.
 - Other attestations issued so far were not submitted and are not anchored.
 
